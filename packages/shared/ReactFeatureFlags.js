@@ -7,7 +7,17 @@
  * @flow strict
  */
 
-export const enableUserTimingAPI = __DEV__;
+// Filter certain DOM attributes (e.g. src, href) if their values are empty strings.
+// This prevents e.g. <img src=""> from making an unnecessary HTTP request for certain browsers.
+export const enableFilterEmptyStringAttributesDOM = false;
+
+// Adds verbose console logging for e.g. state updates, suspense, and work loop stuff.
+// Intended to enable React core members to more easily debug scheduling issues in DEV builds.
+export const enableDebugTracing = false;
+
+// Adds user timing marks for e.g. state updates, suspense, and work loop stuff,
+// for an experimental scheduling profiler tool.
+export const enableSchedulingProfiler = __PROFILE__ && __EXPERIMENTAL__;
 
 // Helps identify side effects in render-phase lifecycle hooks and setState
 // reducers by double invoking them in Strict Mode.
@@ -23,6 +33,9 @@ export const warnAboutDeprecatedLifecycles = true;
 // Gather advanced timing metrics for Profiler subtrees.
 export const enableProfilerTimer = __PROFILE__;
 
+// Record durations for commit and passive effects phases.
+export const enableProfilerCommitHooks = false;
+
 // Trace which interactions trigger each commit.
 export const enableSchedulerTracing = __PROFILE__;
 
@@ -32,28 +45,13 @@ export const enableSelectiveHydration = __EXPERIMENTAL__;
 
 // Flight experiments
 export const enableBlocksAPI = __EXPERIMENTAL__;
+export const enableLazyElements = __EXPERIMENTAL__;
 
 // Only used in www builds.
 export const enableSchedulerDebugging = false;
 
-// Only used in www builds.
-export function addUserTimingListener() {
-  throw new Error('Not implemented.');
-}
-
 // Disable javascript: URL strings in href for XSS protection.
 export const disableJavaScriptURLs = false;
-
-// These APIs will no longer be "unstable" in the upcoming 16.7 release,
-// Control this behavior with a flag to support 16.6 minor releases in the meanwhile.
-export const exposeConcurrentModeAPIs = __EXPERIMENTAL__;
-
-// Warns when a combination of updates on a dom can cause a style declaration
-// that clashes with a previous one https://github.com/facebook/react/pull/14181
-export const warnAboutShorthandPropertyCollision = true;
-
-// Experimental React Flare event system and event components support.
-export const enableDeprecatedFlareAPI = false;
 
 // Experimental Host Component support.
 export const enableFundamentalAPI = false;
@@ -61,16 +59,14 @@ export const enableFundamentalAPI = false;
 // Experimental Scope support.
 export const enableScopeAPI = false;
 
-// New API for JSX transforms to target - https://github.com/reactjs/rfcs/pull/107
-export const enableJSXTransformAPI = false;
+// Experimental Create Event Handle API.
+export const enableCreateEventHandleAPI = false;
 
-// We will enforce mocking scheduler with scheduler/unstable_mock at some point. (v17?)
+// New API for JSX transforms to target - https://github.com/reactjs/rfcs/pull/107
+
+// We will enforce mocking scheduler with scheduler/unstable_mock at some point. (v18?)
 // Till then, we warn about the missing mock, but still fallback to a legacy mode compatible version
 export const warnAboutUnmockedScheduler = false;
-
-// For tests, we flush suspense fallbacks in an act scope;
-// *except* in some of our own tests, where we test incremental loading states.
-export const flushSuspenseFallbacksInTests = true;
 
 // Add a callback property to suspense to notify which promises are currently
 // in the update queue. This allows reporting and tracing of what is causing
@@ -86,35 +82,21 @@ export const warnAboutDefaultPropsOnFunctionComponents = false;
 
 export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
 
-export const enableTrainModelFix = true;
-
 export const enableTrustedTypesIntegration = false;
-
-// Flag to turn event.target and event.currentTarget in ReactNative from a reactTag to a component instance
-export const enableNativeTargetAsInstance = false;
-
-// Controls sequence of passive effect destroy and create functions.
-// If this flag is off, destroy and create functions may be interleaved.
-// When the falg is on, all destroy functions will be run (for all fibers)
-// before any create functions are run, similar to how layout effects work.
-// This flag provides a killswitch if that proves to break existing code somehow.
-export const runAllPassiveEffectDestroysBeforeCreates = false;
-
-// Controls behavior of deferred effect destroy functions during unmount.
-// Previously these functions were run during commit (along with layout effects).
-// Ideally we should delay these until after commit for performance reasons.
-// This flag provides a killswitch if that proves to break existing code somehow.
-//
-// WARNING This flag only has an affect if used with runAllPassiveEffectDestroysBeforeCreates.
-export const deferPassiveEffectCleanupDuringUnmount = false;
-
-// Use this flag to generate "testing" builds, that include APIs like act()
-// and extra warnings/errors
-export const isTestEnvironment = false;
 
 // Enables a warning when trying to spread a 'key' to an element;
 // a deprecated pattern we want to get rid of in the future
 export const warnAboutSpreadingKeyToJSX = false;
+
+export const enableComponentStackLocations = true;
+
+export const enableNewReconciler = false;
+
+// Errors that are thrown while unmounting (or after in the case of passive effects)
+// should bypass any error boundaries that are also unmounting (or have unmounted)
+// and be handled by the nearest still-mounted boundary.
+// If there are no still-mounted boundaries, the errors should be rethrown.
+export const skipUnmountedBoundaries = false;
 
 // --------------------------
 // Future APIs to be deprecated
@@ -128,25 +110,29 @@ export const warnAboutStringRefs = false;
 
 export const disableLegacyContext = false;
 
-// Disables React.createFactory
-export const disableCreateFactory = false;
-
-// Disables hydrate, render, findDOMNode, unmountComponentAtNode
-export const disableLegacyReactDOMAPIs = false;
-
 // Disables children for <textarea> elements
 export const disableTextareaChildren = false;
 
-// Disables Maps as ReactElement children
-export const disableMapsAsChildren = false;
+export const disableModulePatternComponents = false;
 
-// Disables ReactDOM.unstable_renderSubtreeIntoContainer
-export const disableUnstableRenderSubtreeIntoContainer = false;
 // We should remove this flag once the above flag becomes enabled
 export const warnUnstableRenderSubtreeIntoContainer = false;
 
-// Disables ReactDOM.unstable_createPortal
-export const disableUnstableCreatePortal = false;
+// Support legacy Primer support on internal FB www
+export const enableLegacyFBSupport = false;
 
-// Modern event system where events get registered at roots
-export const enableModernEventSystem = false;
+// Updates that occur in the render phase are not officially supported. But when
+// they do occur, we defer them to a subsequent render by picking a lane that's
+// not currently rendering. We treat them the same as if they came from an
+// interleaved event. Remove this flag once we have migrated to the
+// new behavior.
+export const deferRenderPhaseUpdateToNextBatch = true;
+
+// Replacement for runWithPriority in React internals.
+export const decoupleUpdatePriorityFromScheduler = false;
+
+export const enableDiscreteEventFlushingChange = false;
+
+export const enableEagerRootListeners = true;
+
+export const enableDoubleInvokingEffects = false;
